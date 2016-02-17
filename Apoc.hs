@@ -1,7 +1,5 @@
 {- | This module is used for CPSC 449 for the Apocalypse assignment.
-
 Feel free to modify this file as you see fit.
-
 Copyright: Copyright 2016, Rob Kremer (rkremer@ucalgary.ca), University of Calgary.
 Permission to use, copy, modify, distribute and sell this software
 and its documentation for any purpose is hereby granted without fee, provided
@@ -10,7 +8,6 @@ copyright notice and this permission notice appear in supporting
 documentation. The University of Calgary makes no representations about the
 suitability of this software for any purpose. It is provided "as is" without
 express or implied warranty.
-
 -}
 
 module Main(main) where
@@ -30,35 +27,30 @@ import ApocStrategyHuman
 main = main' (unsafePerformIO getArgs)
 
 {- | We have a main' IO function so that we can either:
-
      1. call our program from GHCi in the usual way
      2. run from the command line by calling this function with the value from (getArgs)
 -}
 main'           :: [String] -> IO()
 main' args = do
-        putStrLn "Possible strategies:\n human\n greedy"
-        putStrLn "Choose strategy for BLACK:"
-        play <- getLine
-        check play
-        putStrLn "Choose strategy for WHITE:"
-        play1 <- getLine
-        check play1
-        putStrLn "The initial board:"
-        print initBoard
-        putStrLn $ "\nThe initial board with back human (the placeholder for human) strategy having played one move\n"
-               ++ "(clearly illegal as we must play in rounds!):"
-        move <- human (initBoard) Normal Black
-        putStrLn (show $ GameState (if move==Nothing
-                                then Passed
-                                else Played (head (fromJust move), head (tail (fromJust move))))
-                               (blackPen initBoard)
-                               (Passed)
-                               (whitePen initBoard)
-                               (replace2 (replace2 (theBoard initBoard)
-                                                   ((fromJust move) !! 1)
-                                                   (getFromBoard (theBoard initBoard) ((fromJust move) !! 0)))
-                                         ((fromJust move) !! 0)
-                                         E))
+        args <- getArgs
+        if args == [] then do
+          putStrLn "Possible strategies:\n human\n greedy"
+          putStrLn "Choose strategy for BLACK:"
+          play <- getLine
+          bStrat <- (check play)
+          putStrLn "Choose strategy for WHITE:"
+          play1 <- getLine
+          wStrat <- (check play1)
+          putStrLn "The initial board:"
+          print initBoard
+          gameLoop initBoard bStrat wStrat
+
+        else do 
+            if not (("easy" `elem` args && "human" `elem` args) ||  ("easy" `elem` args && "greedy" `elem` args) || ("greedy" `elem` args && "human" `elem` args) || (args == ["easy", "easy"]) || (args == ["greedy", "greedy"]) || (args == ["human", "human"])) then do
+              putStrLn "Invalid strategy"
+            else do
+              putStrLn "The initial board:"
+              print initBoard
 ---2D list utility functions-------------------------------------------------------
 
 -- | Replaces the nth element in a row with a new element.
@@ -72,9 +64,26 @@ replace xs n elem = let (ys,zs) = splitAt n xs
 replace2        :: [[a]] -> (Int,Int) -> a -> [[a]]
 replace2 xs (x,y) elem = replace xs y (replace (xs !! y) x elem)
 
-check :: String -> IO () 
+check :: String -> IO Chooser
 check n 
-	| n == "human" = do putStrLn "human" 
-	| n == "greedy" = putStrLn "greedy"
+	| n == "human" = return human 
+	| n == "greedy" = return human
 	|otherwise = do putStrLn "Invalid input"; ply <- getLine; check ply
 
+gameLoop :: GameState -> Chooser -> Chooser -> IO ()
+gameLoop board bStrat wStrat = do
+    bMove <- bStrat board Normal Black
+    wMove <- wStrat board Normal White
+    let nextState = (GameState ((if bMove == Nothing 
+                                then Passed 
+                                else Played (head (fromJust bMove), head (tail (fromJust bMove))))
+                                (blackPen board)
+                                (if wMove == Nothing 
+                                then Passed
+                                else Played (head (fromJust wMove), head (tail (fromJust wMove))))
+                                (whitePen board)
+                                (replace2 (replace2 (theBoard board) ((fromJust bMove) !! 1) (getFromBoard (theBoard board) ((fromJust bMove) !! 0)))((fromJust bMove) !! 0)E)
+                                (replace2 (replace2 (theBoard board) ((fromJust wMove) !! 1) (getFromBoard (theBoard board) ((fromJust wMove) !! 0)))((fromJust wMove) !! 0)E)
+                                )) 
+    putStrLn (show nextState)
+    gameLoop nextState bStrat wStrat
