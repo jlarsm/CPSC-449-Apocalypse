@@ -74,16 +74,14 @@ gameLoop :: GameState -> Chooser -> Chooser -> IO ()
 gameLoop board bStrat wStrat = do
     bMove <- bStrat board Normal Black
     wMove <- wStrat board Normal White
-    let nextState = (GameState ((if bMove == Nothing 
+    let nextState = GameState (if bMove == Nothing 
                                 then Passed 
                                 else Played (head (fromJust bMove), head (tail (fromJust bMove))))
-                                (blackPen board)
+                                (blackPen initBoard)
                                 (if wMove == Nothing 
                                 then Passed
                                 else Played (head (fromJust wMove), head (tail (fromJust wMove))))
-                                (whitePen board)
-                                (replace2 (replace2 (theBoard board) ((fromJust bMove) !! 1) (getFromBoard (theBoard board) ((fromJust bMove) !! 0)))((fromJust bMove) !! 0)E)
-                                (replace2 (replace2 (theBoard board) ((fromJust wMove) !! 1) (getFromBoard (theBoard board) ((fromJust wMove) !! 0)))((fromJust wMove) !! 0)E)
-                                )) 
+                                (whitePen initBoard)
+                                (replace2 (replace2 (replace2 (replace2 (theBoard board) ((fromJust wMove) !! 0) E) ((fromJust bMove) !! 0) E) ((fromJust wMove) !! 1) (getFromBoard (theBoard board) ((fromJust wMove) !! 0))) ((fromJust bMove) !! 1) (getFromBoard (theBoard board) ((fromJust bMove) !! 0)))            
     putStrLn (show nextState)
     gameLoop nextState bStrat wStrat
