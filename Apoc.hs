@@ -71,11 +71,11 @@ check n
 	|otherwise = do putStrLn "Invalid input"; ply <- getLine; check ply
 	
 -- | Checks the (x,y)th element in a 2d list and returns the element without changes.
-checkLocation2d :: [[a]] -> (Int,Int) -> String
-checkLocation2d (x:xs) (0,y) = checkLocation x y
-checkLocation2d (x:xs) (x,y) = checkLocation2d xs (x-1,y)
+checkLocation2d :: [[a]] -> (Int,Int) -> a
+checkLocation2d (x:xs) (0,b) = checkLocation x b
+checkLocation2d (x:xs) (a,b) = checkLocation2d xs (a-1,b)
 
-checkLocation :: [a] -> Int -> String
+checkLocation :: [a] -> Int -> a
 checkLocation (x:xs) 0 = x 
 checkLocation (x:xs) n = checkLocation xs (n-1)
 
@@ -98,30 +98,27 @@ gameLoop board bStrat wStrat = do
     gameLoop nextState bStrat wStrat
 
 --takes in the board, list of tuples indicating the move, Player("Black" or "White")
-validateMove :: GameState -> IO( Maybe [(Int,Int)]) -> Player -> Bool
-validateMove board [(x1,y1),(x2,y2)] Black = do
-    if (checkLocation2d (theBoard board) (x1,y1)) == '+' --if piece is pawn
-    then
-    (
+validateMove :: GameState -> [(Int,Int)] -> Player -> Bool
+validateMove board [(x1,y1),(x2,y2)] Black = do --for black pieces
+    if (checkLocation2d (theBoard board) (x1,y1) == BP) --if piece is pawn
+    then(
         if (x1==x2 && y1-1==y2)
         then True
         else(
         if (x1+1==x2 && y1-1==y2)
-        then (if (checkLocation2d (theBoard board) (x2,y2)== 'X' || checkLocation2d (theBoard board) (x2,y2)== '/')
+        then (if (checkLocation2d (theBoard board) (x2,y2)== WK || checkLocation2d (theBoard board) (x2,y2)== WP)
                 then True
                 else False)
         else(
-        if (x1-1==x2 && y1-1==y2)
-        then (if (checkLocation2d (theBoard board) (x2,y2)== 'X' || checkLocation2d (theBoard board) (x2,y2)== '/')
-            then returnBool = True
-            else returnBool = False)
-        else False
-        )
-        )
-    )
-    else
-    (
-        if checkLocation2d (theBoard board) (x1,y1) == '#' --if piece is knight
+            if (x1-1==x2 && y1-1==y2)
+            then(if (checkLocation2d (theBoard board) (x2,y2)== WK || checkLocation2d (theBoard board) (x2,y2)== WP)
+                then True
+                else False)
+            else False
+            )
+        ))
+    else(
+        if checkLocation2d (theBoard board) (x1,y1) == BK --if piece is knight
         then
         (
             if(x1+1 == x2 && y1+2 == y2)
@@ -134,5 +131,37 @@ validateMove board [(x1,y1),(x2,y2)] Black = do
             then True
             else False
         )
-        else False
-    )
+        else False)
+validateMove board [(x1,y1),(x2,y2)] White = do --for white pieces
+    if (checkLocation2d (theBoard board) (x1,y1) == WP) --if piece is pawn
+    then(
+        if (x1==x2 && y1+1==y2)
+        then True
+        else(
+        if (x1+1==x2 && y1+1==y2)
+        then (if (checkLocation2d (theBoard board) (x2,y2)== BK || checkLocation2d (theBoard board) (x2,y2)== BP)
+                then True
+                else False)
+        else(
+            if (x1-1==x2 && y1+1==y2)
+            then(if (checkLocation2d (theBoard board) (x2,y2)== BK || checkLocation2d (theBoard board) (x2,y2)== BP)
+                then True
+                else False)
+            else False
+            )
+        ))
+    else(
+        if checkLocation2d (theBoard board) (x1,y1) == WK --if piece is knight
+        then
+        (
+            if(x1+1 == x2 && y1+2 == y2)
+            then True
+            else if(x1-1 == x2 && y1+2 == y2)
+            then True
+            else if(x1+1 == x2 && y1-2 == y2)
+            then True
+            else if(x1-1 == x2 && y1-2 == y2)
+            then True
+            else False
+        )
+        else False)
