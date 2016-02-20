@@ -113,6 +113,20 @@ checkLocation :: [a] -> Int -> a
 checkLocation (x:xs) 0 = x 
 checkLocation (x:xs) n = checkLocation xs (n-1)
 
+--Logic that handles if a clash has happened on the board, takes in the game state
+--WhitePlayed first, and then BlackPlayed second, returns what the cell should be
+handleClash:: GameState -> Played -> Played -> Cell
+handleClash board (Played(startW,endW)) (Played(startB,endB)) = do
+    if(checkLocation2d (theBoard board) startW==WP && checkLocation2d (theBoard board) startB==BP)
+    then E
+    else if(checkLocation2d (theBoard board) startW==WP && checkLocation2d (theBoard board) startB==BK)
+    then BK
+    else if(checkLocation2d (theBoard board) startW==WK && checkLocation2d (theBoard board) startB==BP)
+    then WK
+    else if(checkLocation2d (theBoard board) startW==WK && checkLocation2d (theBoard board) startB==BK)
+    then E
+    else E
+
 --takes in the board, list of tuples indicating the move, Player("Black" or "White")
 validateMove :: GameState -> [(Int,Int)] -> Player -> Bool
 validateMove board [(x1,y1),(x2,y2)] Black = do --for black pieces
