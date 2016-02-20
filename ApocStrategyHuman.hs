@@ -15,6 +15,7 @@ express or implied warranty.
 
 module ApocStrategyHuman where
 
+import System.Random
 import Control.Monad.Trans.State.Lazy
 import Data.Maybe (fromJust, isNothing)
 import System.IO.Unsafe
@@ -27,7 +28,7 @@ import ApocTools
 -}
 human    :: Chooser
 human b Normal        c = do d <- getLine; mover d
-human b PawnPlacement c = return (Just [(2,2)])
+human b PawnPlacement c = do d <- getLine; pawnPlacer d
 mover :: String -> IO (Maybe [(Int,Int)])
 mover xs = 
     if xs == "" then
@@ -37,3 +38,10 @@ mover xs =
         if length x < 4 then do putStrLn "Invalid"; d <- getLine; mover d
         else do
             return(Just (zip (head x : x !! 2 : []) (x !! 1 : x !! 3 : [])))
+pawnPlacer :: String -> IO (Maybe [(Int,Int)])
+pawnPlacer xs = if xs == "" then do putStrLn ("Please place pawn on an empty spot" ++ "_"); str' <- getLine; pawnPlacer str'
+                else do
+                    let x = [digitToInt x | x <- xs, isDigit x];
+                    if length x < 2 then do putStrLn ("Please place pawn on an empty spot" ++ "_"); str' <- getLine; pawnPlacer str'
+                    else do 
+                         return(Just (zip (head x : []) (x !! 1 : [])))
