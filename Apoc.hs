@@ -12,9 +12,11 @@ express or implied warranty.
 
 module Main(main) where
 
+import System.Random
 import Control.Monad.Trans.State.Lazy
 import Data.Maybe (fromJust, isNothing)
 import Data.List
+import Data.Char
 import System.Environment
 import System.IO.Unsafe
 import ApocTools
@@ -66,20 +68,9 @@ replace2 xs (x,y) elem = replace xs y (replace (xs !! y) x elem)
 
 check :: String -> IO Chooser
 check n 
-	| n == "human" = return human 
-	| n == "greedy" = return human
-	|otherwise = do putStrLn "Invalid input"; ply <- getLine; check ply
-	
--- | Checks the (x,y)th element in a 2d list and returns the element without changes.
-checkLocation2d :: [[a]] -> (Int,Int) -> a
-checkLocation2d (x:xs) (0,b) = checkLocation x b
-checkLocation2d (x:xs) (a,b) = checkLocation2d xs (a-1,b)
-
-checkLocation :: [a] -> Int -> a
-checkLocation (x:xs) 0 = x 
-checkLocation (x:xs) n = checkLocation xs (n-1)
-
----Game Functions----------------------------------------------------------------------
+  | n == "human" = return human 
+  | n == "greedy" = return human
+  |otherwise = do putStrLn "Invalid input"; ply <- getLine; check ply
 
 gameLoop :: GameState -> Chooser -> Chooser -> IO ()
 gameLoop board bStrat wStrat = do
@@ -93,9 +84,34 @@ gameLoop board bStrat wStrat = do
                                 then Passed
                                 else Played (head (fromJust wMove), head (tail (fromJust wMove))))
                                 (whitePen initBoard)
-                                (replace2 (replace2 (replace2 (replace2 (theBoard board) ((fromJust wMove) !! 0) E) ((fromJust bMove) !! 0) E) ((fromJust wMove) !! 1) (getFromBoard (theBoard board) ((fromJust wMove) !! 0))) ((fromJust bMove) !! 1) (getFromBoard (theBoard board) ((fromJust bMove) !! 0)))            
+                                (if bMove == Nothing
+                                  then (if wMove == Nothing 
+                                        then do theBoard board
+                                        else (replace2 (replace2 (theBoard board)((fromJust wMove) !! 1)(getFromBoard (theBoard board) ((fromJust wMove) !! 0)))((fromJust wMove) !! 0)E))
+                                  else (if wMove == Nothing then (replace2 (replace2 (theBoard board)((fromJust bMove) !! 1)(getFromBoard (theBoard board) ((fromJust bMove) !! 0)))((fromJust bMove) !! 0)E)
+                                        else (replace2 (replace2 (replace2 (replace2 (theBoard board) ((fromJust wMove) !! 0) E) ((fromJust bMove) !! 0) E) ((fromJust wMove) !! 1) (getFromBoard (theBoard board) ((fromJust wMove) !! 0))) ((fromJust bMove) !! 1) (getFromBoard (theBoard board) ((fromJust bMove) !! 0)))))            
+    if (isGameOver nextState bMove wMove) == True then gameOver nextState
+      else do
     putStrLn (show nextState)
     gameLoop nextState bStrat wStrat
+isGameOver :: GameState -> Maybe[(Int,Int)] -> Maybe[(Int,Int)] -> Bool
+isGameOver board bMove wMove
+                      | bMove == Nothing && wMove == Nothing = True
+                      | elem '/' (board2Str (theBoard board)) == False = True
+                      | elem '+' (board2Str (theBoard board)) == False = True
+                      | (blackPen board) >= 2 || (whitePen board) >= 2 = True
+                      | otherwise = False
+gameOver :: GameState -> IO()
+gameOver board = putStrLn ("Winner is:" ++ [intToDigit(length (findIndices (== '/') (board2Str (theBoard board))))])
+
+-- | Checks the (x,y)th element in a 2d list and returns the element without changes.
+checkLocation2d :: [[a]] -> (Int,Int) -> a
+checkLocation2d (x:xs) (0,b) = checkLocation x b
+checkLocation2d (x:xs) (a,b) = checkLocation2d xs (a-1,b)
+
+checkLocation :: [a] -> Int -> a
+checkLocation (x:xs) 0 = x 
+checkLocation (x:xs) n = checkLocation xs (n-1)
 
 --takes in the board, list of tuples indicating the move, Player("Black" or "White")
 validateMove :: GameState -> [(Int,Int)] -> Player -> Bool
@@ -165,3 +181,6 @@ validateMove board [(x1,y1),(x2,y2)] White = do --for white pieces
             else False
         )
         else False)
+
+
+
