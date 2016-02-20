@@ -19,6 +19,8 @@ import System.Environment
 import System.IO.Unsafe
 import ApocTools
 import ApocStrategyHuman
+import ApocGreedyStrat
+import Random
 
 
 ---Main-------------------------------------------------------------
@@ -41,16 +43,50 @@ main' args = do
           putStrLn "Choose strategy for WHITE:"
           play1 <- getLine
           wStrat <- (check play1)
-          putStrLn "The initial board:"
-          print initBoard
-          gameLoop initBoard bStrat wStrat
-
+     
         else do 
-            if not (("easy" `elem` args && "human" `elem` args) ||  ("easy" `elem` args && "greedy" `elem` args) || ("greedy" `elem` args && "human" `elem` args) || (args == ["easy", "easy"]) || (args == ["greedy", "greedy"]) || (args == ["human", "human"])) then do
-              putStrLn "Invalid strategy"
+            if (("easy" `elem` args && "human" `elem` args) ||  ("easy" `elem` args && "greedy" `elem` args) || ("greedy" `elem` args && "human" `elem` args) || (args == ["easy", "easy"]) || (args == ["greedy", "greedy"]) || (args == ["human", "human"])) then do
+              chooseAI play play1
             else do
-              putStrLn "The initial board:"
-              print initBoard
+              putStrLn "Invalid input"
+			  
+			  
+chooseAI :: String -> String -> IO()
+chooseAI play play1 =  do
+	if play == "human"
+		then
+			if play1 == "human"
+				then startGame human human
+				else
+					if play1 = "greedy"
+						then startGame human greedy
+						else putStrLn "human\n greedy\n"
+						
+	else
+		if play == "greedy"
+			then
+				if play1 == "human"
+					then startGame greedy human
+					else 
+						if play1 == "greedy"
+							then startGame greedy greedy
+							else putStrLn "human\n greedy\n"
+		else putStrLn "human\n greedy\n"
+		
+startGame :: Chooser -> Chooser -> IO()
+startGame play play1 = do
+	putStrLn $ "\nThe initial board:"
+	print initBoard
+	gameLoop initBoard bStrat wStrat
+			  
+			  
+
+
+
+
+
+
+			  
 ---2D list utility functions-------------------------------------------------------
 
 -- | Replaces the nth element in a row with a new element.
@@ -165,3 +201,14 @@ validateMove board [(x1,y1),(x2,y2)] White = do --for white pieces
             else False
         )
         else False)
+-- bound check if piece is in bounds of the board --
+
+
+boundCheck      :: (Int, Int) -> Bool
+boundCheck move | x<0 = False
+				| x>4 = False
+				| y<0 = False
+				| y>4 = False
+				| otherwise = True
+				where x = first move
+					  y = second move
