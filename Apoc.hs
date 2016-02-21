@@ -13,6 +13,7 @@ express or implied warranty.
 module Main(main) where
 
 import System.Random
+import Control.Monad
 import Control.Monad.Trans.State.Lazy
 import Data.Maybe (fromJust, isNothing)
 import Data.List
@@ -71,18 +72,22 @@ check n
   | n == "human" = return human 
   | n == "greedy" = return human
   |otherwise = do putStrLn "Invalid input"; ply <- getLine; check ply
-
+  
 gameLoop :: GameState -> Chooser -> Chooser -> IO ()
 gameLoop board bStrat wStrat = do
     bMove <- bStrat board Normal Black
     wMove <- wStrat board Normal White
     let nextState = GameState (if bMove == Nothing 
                                 then Passed 
-                                else Played (head (fromJust bMove), head (tail (fromJust bMove))))
+                                else if(validateMove board (fromJust bMove) Black)
+                                then Played (head (fromJust bMove), head (tail (fromJust bMove)))
+                                else Goofed (head (fromJust bMove), head (tail (fromJust bMove))))
                                 (blackPen initBoard)
                                 (if wMove == Nothing 
-                                then Passed
-                                else Played (head (fromJust wMove), head (tail (fromJust wMove))))
+                                then Passed 
+                                else if(validateMove board (fromJust wMove) White)
+                                then Played (head (fromJust wMove), head (tail (fromJust wMove)))
+                                else Goofed (head (fromJust wMove), head (tail (fromJust wMove))))
                                 (whitePen initBoard)
                                 (if bMove == Nothing
                                   then (if wMove == Nothing 
@@ -94,6 +99,7 @@ gameLoop board bStrat wStrat = do
       else do
     putStrLn (show nextState)
     gameLoop nextState bStrat wStrat
+    
 isGameOver :: GameState -> Maybe[(Int,Int)] -> Maybe[(Int,Int)] -> Bool
 isGameOver board bMove wMove
                       | bMove == Nothing && wMove == Nothing = True
@@ -101,100 +107,56 @@ isGameOver board bMove wMove
                       | elem '+' (board2Str (theBoard board)) == False = True
                       | (blackPen board) >= 2 || (whitePen board) >= 2 = True
                       | otherwise = False
+                      
 gameOver :: GameState -> IO()
 gameOver board = putStrLn ("Winner is:" ++ [intToDigit(length (findIndices (== '/') (board2Str (theBoard board))))])
-
--- | Checks the (x,y)th element in a 2d list and returns the element without changes.
-checkLocation2d :: [[a]] -> (Int,Int) -> a
-checkLocation2d (x:xs) (0,b) = checkLocation x b
-checkLocation2d (x:xs) (a,b) = checkLocation2d xs (a-1,b)
-
-checkLocation :: [a] -> Int -> a
-checkLocation (x:xs) 0 = x 
-checkLocation (x:xs) n = checkLocation xs (n-1)
 
 --Logic that handles if a clash has happened on the board, takes in the game state
 --WhitePlayed first, and then BlackPlayed second, returns what the cell should be
 handleClash:: GameState -> Played -> Played -> Cell
 handleClash board (Played(startW,endW)) (Played(startB,endB)) = do
-    if(checkLocation2d (theBoard board) startW==WP && checkLocation2d (theBoard board) startB==BP)
+    if(getFromBoard (theBoard board) startW==WP && getFromBoard (theBoard board) startB==BP)
     then E
-    else if(checkLocation2d (theBoard board) startW==WP && checkLocation2d (theBoard board) startB==BK)
+    else if(getFromBoard (theBoard board) startW==WP && getFromBoard (theBoard board) startB==BK)
     then BK
-    else if(checkLocation2d (theBoard board) startW==WK && checkLocation2d (theBoard board) startB==BP)
+    else if(getFromBoard (theBoard board) startW==WK && getFromBoard (theBoard board) startB==BP)
     then WK
-    else if(checkLocation2d (theBoard board) startW==WK && checkLocation2d (theBoard board) startB==BK)
+    else if(getFromBoard (theBoard board) startW==WK && getFromBoard (theBoard board) startB==BK)
     then E
     else E
-
+    
 --takes in the board, list of tuples indicating the move, Player("Black" or "White")
 validateMove :: GameState -> [(Int,Int)] -> Player -> Bool
-validateMove board [(x1,y1),(x2,y2)] Black = do --for black pieces
-    if (checkLocation2d (theBoard board) (x1,y1) == BP) --if piece is pawn
-    then(
-        if (x1==x2 && y1-1==y2)
-        then True
-        else(
-        if (x1+1==x2 && y1-1==y2)
-        then (if (checkLocation2d (theBoard board) (x2,y2)== WK || checkLocation2d (theBoard board) (x2,y2)== WP)
-                then True
-                else False)
-        else(
-            if (x1-1==x2 && y1-1==y2)
-            then(if (checkLocation2d (theBoard board) (x2,y2)== WK || checkLocation2d (theBoard board) (x2,y2)== WP)
-                then True
-                else False)
-            else False
-            )
-        ))
-    else(
-        if checkLocation2d (theBoard board) (x1,y1) == BK --if piece is knight
-        then
-        (
-            if(x1+1 == x2 && y1+2 == y2)
-            then True
-            else if(x1-1 == x2 && y1+2 == y2)
-            then True
-            else if(x1+1 == x2 && y1-2 == y2)
-            then True
-            else if(x1-1 == x2 && y1-2 == y2)
-            then True
-            else False
-        )
-        else False)
-validateMove board [(x1,y1),(x2,y2)] White = do --for white pieces
-    if (checkLocation2d (theBoard board) (x1,y1) == WP) --if piece is pawn
-    then(
-        if (x1==x2 && y1+1==y2)
-        then True
-        else(
-        if (x1+1==x2 && y1+1==y2)
-        then (if (checkLocation2d (theBoard board) (x2,y2)== BK || checkLocation2d (theBoard board) (x2,y2)== BP)
-                then True
-                else False)
-        else(
-            if (x1-1==x2 && y1+1==y2)
-            then(if (checkLocation2d (theBoard board) (x2,y2)== BK || checkLocation2d (theBoard board) (x2,y2)== BP)
-                then True
-                else False)
-            else False
-            )
-        ))
-    else(
-        if checkLocation2d (theBoard board) (x1,y1) == WK --if piece is knight
-        then
-        (
-            if(x1+1 == x2 && y1+2 == y2)
-            then True
-            else if(x1-1 == x2 && y1+2 == y2)
-            then True
-            else if(x1+1 == x2 && y1-2 == y2)
-            then True
-            else if(x1-1 == x2 && y1-2 == y2)
-            then True
-            else False
-        )
-        else False)
-
-
-
+validateMove board [(x1,y1),(x2,y2)] Black --for black pieces
+    |getFromBoard (theBoard board) (x1,y1) == BP && x1==x2 && y1-1==y2 
+        && getFromBoard (theBoard board) (x2,y2)== E = True
+    |getFromBoard (theBoard board) (x1,y1) == BP && x1+1==x2 && y1-1==y2 
+        && (getFromBoard (theBoard board) (x2,y2)== WK || getFromBoard (theBoard board) (x2,y2)== WP) = True
+    |getFromBoard (theBoard board) (x1,y1) == BP && x1-1==x2 && y1-1==y2
+        && (getFromBoard (theBoard board) (x2,y2)== WK || getFromBoard (theBoard board) (x2,y2)== WP) = True
+    |getFromBoard (theBoard board) (x1,y1) == BK && x1+1 == x2 && y1+2 == y2 = True
+    |getFromBoard (theBoard board) (x1,y1) == BK && x1-1 == x2 && y1+2 == y2 = True
+    |getFromBoard (theBoard board) (x1,y1) == BK && x1+1 == x2 && y1-2 == y2 = True
+    |getFromBoard (theBoard board) (x1,y1) == BK && x1-1 == x2 && y1-2 == y2 = True
+    |getFromBoard (theBoard board) (x1,y1) == BK && x1+2 == x2 && y1+1 == y2 = True
+    |getFromBoard (theBoard board) (x1,y1) == BK && x1-2 == x2 && y1+1 == y2 = True
+    |getFromBoard (theBoard board) (x1,y1) == BK && x1+2 == x2 && y1-1 == y2 = True
+    |getFromBoard (theBoard board) (x1,y1) == BK && x1-2 == x2 && y1-1 == y2 = True
+    | otherwise = False
+validateMove board [(x1,y1),(x2,y2)] White --for white pieces
+    |getFromBoard (theBoard board) (x1,y1) == WP && x1==x2 && y1+1==y2 
+        && getFromBoard (theBoard board) (x2,y2)== E = True
+    |getFromBoard (theBoard board) (x1,y1) == WP && x1+1==x2 && y1+1==y2 
+        && (getFromBoard (theBoard board) (x2,y2)== BK || getFromBoard (theBoard board) (x2,y2)== BP) = True
+    |getFromBoard (theBoard board) (x1,y1) == WP && x1-1==x2 && y1+1==y2
+        && (getFromBoard (theBoard board) (x2,y2)== BK || getFromBoard (theBoard board) (x2,y2)== BP) = True
+    |getFromBoard (theBoard board) (x1,y1) == WK && x1+1 == x2 && y1+2 == y2 = True
+    |getFromBoard (theBoard board) (x1,y1) == WK && x1-1 == x2 && y1+2 == y2 = True
+    |getFromBoard (theBoard board) (x1,y1) == WK && x1+1 == x2 && y1-2 == y2 = True
+    |getFromBoard (theBoard board) (x1,y1) == WK && x1-1 == x2 && y1-2 == y2 = True
+    |getFromBoard (theBoard board) (x1,y1) == WK && x1+2 == x2 && y1+1 == y2 = True
+    |getFromBoard (theBoard board) (x1,y1) == WK && x1-2 == x2 && y1+1 == y2 = True
+    |getFromBoard (theBoard board) (x1,y1) == WK && x1+2 == x2 && y1-1 == y2 = True
+    |getFromBoard (theBoard board) (x1,y1) == WK && x1-2 == x2 && y1-1 == y2 = True
+    | otherwise = False
+    
