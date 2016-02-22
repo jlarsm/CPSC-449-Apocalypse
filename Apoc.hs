@@ -114,10 +114,10 @@ checkEnd board = if elem BP (head(theBoard board)) || elem WP (last(theBoard boa
         then True
         else False
 promotion :: Board -> Player -> Maybe[(Int,Int)] -> Board
-promotion board Black move = if move == Nothing && (length(findIndices (== '#') (board2Str (theBoard board))) >= 2) then replace2 board ((findPawn (head board) BP),0) BK
+promotion board Black move = if move == Nothing && (length(findIndices (== '#') (board2Str board))) >= 2 then replace2 board ((findPawn (head board) BP),0) BK
                               else replace2 (replace2 board ((fromJust move) !! 0) BP) ((findPawn (head board) BP),0) E
 
-promotion board White move = if move == Nothing && (length(findIndices (== 'X') (board2Str (theBoard board))) >= 2) then replace2 board ((findPawn (last board) WP),4) WK
+promotion board White move = if move == Nothing && (length(findIndices (== 'X') (board2Str board))) >= 2 then replace2 board ((findPawn (last board) WP),4) WK
                               else replace2 (replace2 board ((fromJust move) !! 0) WP) ((findPawn (last board) WP),4) E
 
 placer :: GameState -> Chooser -> Chooser -> IO()
@@ -189,19 +189,6 @@ checkLocation :: [a] -> Int -> a
 checkLocation (x:xs) 0 = x 
 checkLocation (x:xs) n = checkLocation xs (n-1)
 
---Logic that handles if a clash has happened on the board, takes in the game state
---WhitePlayed first, and then BlackPlayed second, returns what the cell should be
-handleClash:: GameState -> Played -> Played -> Cell
-handleClash board (Played(startW,endW)) (Played(startB,endB)) = do
-    if(getFromBoard (theBoard board) startW==WP && getFromBoard (theBoard board) startB==BP)
-    then E
-    else if(getFromBoard (theBoard board) startW==WP && getFromBoard (theBoard board) startB==BK)
-    then BK
-    else if(getFromBoard (theBoard board) startW==WK && getFromBoard (theBoard board) startB==BP)
-    then WK
-    else if(getFromBoard (theBoard board) startW==WK && getFromBoard (theBoard board) startB==BK)
-    then E
-    else E
     
 --takes in the board, list of tuples indicating the move, Player("Black" or "White")
 validateMove :: GameState -> [(Int,Int)] -> Player -> Bool
