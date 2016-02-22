@@ -35,13 +35,16 @@ mover xs =
         return Nothing
     else do 
         let x = [digitToInt x | x <- xs, isDigit x]; 
-        if length x < 4 then do putStrLn "Invalid"; d <- getLine; mover d
-        else do
-            return(Just (zip (head x : x !! 2 : []) (x !! 1 : x !! 3 : [])))
+        if length x < 4 then do putStrLn "Invalid Input: Input must be 4 digits in length and have format 'srcX srcY destX destY' 0 >= n >= 4"; d <- getLine; mover d
+        else 
+            if ((head x) < 0 || (head x) > 4 || (x !! 1) < 0 || (x !! 1) > 4 || (x !! 2) < 0 || (x !! 2) > 4 || (x !! 3) < 0)
+                then do putStrLn "Invalid Input: Out Of Range (0 <= x <= 4)"; d <- getLine; mover d
+                else do return(Just (zip (head x : x !! 2 : []) (x !! 1 : x !! 3 : [])))
 pawnPlacer :: String -> IO (Maybe [(Int,Int)])
-pawnPlacer xs = if xs == "" then do putStrLn ("Please place pawn on an empty spot" ++ "_"); str' <- getLine; pawnPlacer str'
+pawnPlacer xs = if xs == "" then return Nothing
                 else do
                     let x = [digitToInt x | x <- xs, isDigit x];
-                    if length x < 2 then do putStrLn ("Please place pawn on an empty spot" ++ "_"); str' <- getLine; pawnPlacer str'
-                    else do 
-                         return(Just (zip (head x : []) (x !! 1 : [])))
+                    if length x < 2 then do putStrLn ("Please place pawn on an empty spot '_'"); str' <- getLine; pawnPlacer str'
+                    else if ((head x) < 0 || (head x) > 4 || (x !! 1) < 0 || (x !! 1) > 4) 
+                        then do putStrLn ("Invalid Input: Out Of Range (0 <= x <= 4)"); str' <- getLine; pawnPlacer str'
+                        else do return(Just (zip (head x : []) (x !! 1 : [])))
