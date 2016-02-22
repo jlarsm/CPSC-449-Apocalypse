@@ -77,17 +77,17 @@ gameLoop board bStrat wStrat = do
     wMove <- wStrat board Normal White
     let nextState = GameState (if bMove == Nothing 
                             then Passed 
-                            else if(validateMove board (fromJust bMove) Black)
+                            else if(validateMove (theBoard board) (fromJust bMove) Black)
                             then Played (head (fromJust bMove), head (tail (fromJust bMove)))
                             else Goofed (head (fromJust bMove), head (tail (fromJust bMove))))
                             (blackPen initBoard)
                             (if wMove == Nothing 
                             then Passed 
-                            else if(validateMove board (fromJust wMove) White)
+                            else if(validateMove (theBoard board) (fromJust wMove) White)
                             then Played (head (fromJust wMove), head (tail (fromJust wMove)))
                             else Goofed (head (fromJust wMove), head (tail (fromJust wMove))))
                             (whitePen initBoard)
-                            (changeBoard board bMove wMove)
+                            (changeBoard (theBoard board) bMove wMove)
     putStrLn (show nextState)
     if (isGameOver nextState bMove wMove) == True then gameOver nextState
       else
@@ -95,15 +95,37 @@ gameLoop board bStrat wStrat = do
           then placer nextState bStrat wStrat
           else gameLoop nextState bStrat wStrat
           
-changeBoard :: GameState -> Maybe [(Int,Int)] -> Maybe [(Int,Int)] -> Board
-changeBoard board bMove wMove = do
-    if bMove == Nothing
-    then (if wMove == Nothing 
-        then do theBoard board
-        else (replace2 (replace2 (theBoard board)((fromJust wMove) !! 1)(getFromBoard (theBoard board) ((fromJust wMove) !! 0)))((fromJust wMove) !! 0)E))
-    else (if wMove == Nothing then (replace2 (replace2 (theBoard board)((fromJust bMove) !! 1)(getFromBoard (theBoard board) ((fromJust bMove) !! 0)))((fromJust bMove) !! 0)E)
-        else (replace2 (replace2 (replace2 (replace2 (theBoard board) ((fromJust wMove) !! 0) E) ((fromJust bMove) !! 0) E) ((fromJust wMove) !! 1) (getFromBoard (theBoard board)
-        ((fromJust wMove) !! 0))) ((fromJust bMove) !! 1) (getFromBoard (theBoard board) ((fromJust bMove) !! 0))))
+changeBoard :: Board -> Maybe [(Int,Int)] -> Maybe [(Int,Int)] -> Board
+changeBoard board bMove wMove
+    |bMove == Nothing && wMove == Nothing = board
+    |bMove == Nothing && wMove /= Nothing = do
+        if (validateMove board (fromJust wMove) White) then(replace2 (replace2 (board)((fromJust wMove) !! 1)(getFromBoard (board) ((fromJust wMove) !! 0)))((fromJust wMove) !! 0)E)
+        else board
+    |bMove /= Nothing && wMove == Nothing = do
+        if (validateMove board (fromJust bMove) Black) then(replace2 (replace2 (board)((fromJust bMove) !! 1)(getFromBoard (board) ((fromJust bMove) !! 0)))((fromJust bMove) !! 0)E)
+        else board
+    |otherwise = do
+        let wPiece = getFromBoard (board) ((fromJust wMove) !! 0)
+        let bPiece = getFromBoard (board) ((fromJust bMove) !! 0)
+        if(((fromJust wMove) !! 1)==((fromJust bMove) !! 1) && (validateMove board (fromJust bMove) Black) && (validateMove board (fromJust wMove) White))
+        then replace2 (replace2 (replace2 board ((fromJust wMove) !! 0) E) ((fromJust bMove) !! 0) E) ((fromJust bMove) !! 1) (handleClash bPiece wPiece)
+        else if(validateMove board (fromJust bMove) Black)
+        then(if(validateMove board (fromJust wMove) White)--both moves are valid
+               then(replace2 (replace2 (replace2 (replace2 board ((fromJust wMove) !! 0) E) ((fromJust bMove) !! 0) E) ((fromJust bMove) !! 1) bPiece) ((fromJust wMove) !! 1) wPiece)
+               else(replace2 ((replace2 board ((fromJust bMove) !! 0) E)) ((fromJust bMove) !! 1) bPiece)) --only bMove is valid
+        else(if(validateMove board (fromJust wMove) White)--only wMove is valid
+                then(replace2 ((replace2 board ((fromJust wMove) !! 0) E)) ((fromJust wMove) !! 1) wPiece)
+                else(board)) --niether moves are valid
+    
+--Logic that handles if a clash has happened on the board, takes in the game state
+--returns what the victorious piece is
+handleClash :: Cell -> Cell -> Cell
+handleClash bPiece wPiece
+    |wPiece==WP && bPiece==BP = E
+    |wPiece==WP && bPiece==BK = BK
+    |wPiece==WK && bPiece==BP = WK
+    |wPiece==WK && bPiece==BK = E
+    |otherwise = E
     
 isGameOver :: GameState -> Maybe[(Int,Int)] -> Maybe[(Int,Int)] -> Bool
 isGameOver board bMove wMove
@@ -203,72 +225,73 @@ checkLocation (x:xs) n = checkLocation xs (n-1)
 
     
 --takes in the board, list of tuples indicating the move, Player("Black" or "White")
-validateMove :: GameState -> [(Int,Int)] -> Player -> Bool
+validateMove :: Board -> [(Int,Int)] -> Player -> Bool
 validateMove board [(x1,y1),(x2,y2)] Black --for black pieces
-    |getFromBoard (theBoard board) (x1,y1) == BP && x1==x2 && y1-1==y2 
-        && getFromBoard (theBoard board) (x2,y2)== E = True
-    |(getFromBoard (theBoard board) (x1,y1) == BP && x1+1==x2 && y1-1==y2 
-        && (getFromBoard (theBoard board) (x2,y2)== WK
-        || getFromBoard (theBoard board) (x2,y2)== WP)) = True
-    |(getFromBoard (theBoard board) (x1,y1) == BP && x1-1==x2 && y1-1==y2
-        && (getFromBoard (theBoard board) (x2,y2)== WK
-        || getFromBoard (theBoard board) (x2,y2)== WP)) = True
-    |getFromBoard (theBoard board) (x1,y1) == BK && x1+1 == x2 && y1+2 == y2
-        && (getFromBoard (theBoard board) (x2, y2) /= BK
-        && getFromBoard (theBoard board) (x2, y2) /= BP) = True
-    |getFromBoard (theBoard board) (x1,y1) == BK && x1-1 == x2 && y1+2 == y2
-        && (getFromBoard (theBoard board) (x2, y2) /= BK
-        && getFromBoard (theBoard board) (x2, y2) /= BP) = True
-    |getFromBoard (theBoard board) (x1,y1) == BK && x1+1 == x2 && y1-2 == y2
-        && (getFromBoard (theBoard board) (x2, y2) /= BK
-        && getFromBoard (theBoard board) (x2, y2) /= BP) = True
-    |getFromBoard (theBoard board) (x1,y1) == BK && x1-1 == x2 && y1-2 == y2
-        && (getFromBoard (theBoard board) (x2, y2) /= BK
-        && getFromBoard (theBoard board) (x2, y2) /= BP) = True
-    |getFromBoard (theBoard board) (x1,y1) == BK && x1+2 == x2 && y1+1 == y2
-        && (getFromBoard (theBoard board) (x2, y2) /= BK
-        && getFromBoard (theBoard board) (x2, y2) /= BP) = True
-    |getFromBoard (theBoard board) (x1,y1) == BK && x1-2 == x2 && y1+1 == y2
-        && (getFromBoard (theBoard board) (x2, y2) /= BK
-        && getFromBoard (theBoard board) (x2, y2) /= BP) = True
-    |getFromBoard (theBoard board) (x1,y1) == BK && x1+2 == x2 && y1-1 == y2
-        && (getFromBoard (theBoard board) (x2, y2) /= BK
-        && getFromBoard (theBoard board) (x2, y2) /= BP) = True
-    |getFromBoard (theBoard board) (x1,y1) == BK && x1-2 == x2 && y1-1 == y2
-        && (getFromBoard (theBoard board) (x2, y2) /= BK
-        && getFromBoard (theBoard board) (x2, y2) /= BP) = True
+    |getFromBoard board (x1,y1) == BP && x1==x2 && y1-1==y2 
+        && getFromBoard board (x2,y2)== E = True
+    |(getFromBoard board (x1,y1) == BP && x1+1==x2 && y1-1==y2 
+        && (getFromBoard board (x2,y2)== WK
+        || getFromBoard board (x2,y2)== WP)) = True
+    |(getFromBoard board (x1,y1) == BP && x1-1==x2 && y1-1==y2
+        && (getFromBoard board (x2,y2)== WK
+        || getFromBoard board (x2,y2)== WP)) = True
+    |getFromBoard board (x1,y1) == BK && x1+1 == x2 && y1+2 == y2
+        && (getFromBoard board (x2, y2) /= BK
+        && getFromBoard board (x2, y2) /= BP) = True
+    |getFromBoard board (x1,y1) == BK && x1-1 == x2 && y1+2 == y2
+        && (getFromBoard board (x2, y2) /= BK
+        && getFromBoard board (x2, y2) /= BP) = True
+    |getFromBoard board (x1,y1) == BK && x1+1 == x2 && y1-2 == y2
+        && (getFromBoard board (x2, y2) /= BK
+        && getFromBoard board (x2, y2) /= BP) = True
+    |getFromBoard board (x1,y1) == BK && x1-1 == x2 && y1-2 == y2
+        && (getFromBoard board (x2, y2) /= BK
+        && getFromBoard board (x2, y2) /= BP) = True
+    |getFromBoard board (x1,y1) == BK && x1+2 == x2 && y1+1 == y2
+        && (getFromBoard board (x2, y2) /= BK
+        && getFromBoard board (x2, y2) /= BP) = True
+    |getFromBoard board (x1,y1) == BK && x1-2 == x2 && y1+1 == y2
+        && (getFromBoard board (x2, y2) /= BK
+        && getFromBoard board (x2, y2) /= BP) = True
+    |getFromBoard board (x1,y1) == BK && x1+2 == x2 && y1-1 == y2
+        && (getFromBoard board (x2, y2) /= BK
+        && getFromBoard board (x2, y2) /= BP) = True
+    |getFromBoard board (x1,y1) == BK && x1-2 == x2 && y1-1 == y2
+        && (getFromBoard board (x2, y2) /= BK
+        && getFromBoard board (x2, y2) /= BP) = True
     | otherwise = False
 validateMove board [(x1,y1),(x2,y2)] White --for white pieces
-    |getFromBoard (theBoard board) (x1,y1) == WP && x1==x2 && y1+1==y2 
-        && getFromBoard (theBoard board) (x2,y2)== E = True
-    |(getFromBoard (theBoard board) (x1,y1) == WP && x1+1==x2 && y1+1==y2 
-        && (getFromBoard (theBoard board) (x2,y2)== BK
-        || getFromBoard (theBoard board) (x2,y2)== BP)) = True
-    |(getFromBoard (theBoard board) (x1,y1) == WP && x1-1==x2 && y1+1==y2
-        && (getFromBoard (theBoard board) (x2,y2)== BK
-        || getFromBoard (theBoard board) (x2,y2)== BP)) = True
-    |getFromBoard (theBoard board) (x1,y1) == WK && x1+1 == x2 && y1+2 == y2
-        && (getFromBoard (theBoard board) (x2, y2) /= WK
-        && getFromBoard (theBoard board) (x2, y2) /= WP) = True
-    |getFromBoard (theBoard board) (x1,y1) == WK && x1-1 == x2 && y1+2 == y2
-        && (getFromBoard (theBoard board) (x2, y2) /= WK
-        && getFromBoard (theBoard board) (x2, y2) /= WP) = True
-    |getFromBoard (theBoard board) (x1,y1) == WK && x1+1 == x2 && y1-2 == y2
-        && (getFromBoard (theBoard board) (x2, y2) /= WK
-        && getFromBoard (theBoard board) (x2, y2) /= WP) = True
-    |getFromBoard (theBoard board) (x1,y1) == WK && x1-1 == x2 && y1-2 == y2
-        && (getFromBoard (theBoard board) (x2, y2) /= WK
-        && getFromBoard (theBoard board) (x2, y2) /= WP) = True
-    |getFromBoard (theBoard board) (x1,y1) == WK && x1+2 == x2 && y1+1 == y2
-        && (getFromBoard (theBoard board) (x2, y2) /= WK
-        && getFromBoard (theBoard board) (x2, y2) /= WP) = True
-    |getFromBoard (theBoard board) (x1,y1) == WK && x1-2 == x2 && y1+1 == y2
-        && (getFromBoard (theBoard board) (x2, y2) /= WK
-        && getFromBoard (theBoard board) (x2, y2) /= WP) = True
-    |getFromBoard (theBoard board) (x1,y1) == WK && x1+2 == x2 && y1-1 == y2
-        && (getFromBoard (theBoard board) (x2, y2) /= WK
-        && getFromBoard (theBoard board) (x2, y2) /= WP) = True
-    |getFromBoard (theBoard board) (x1,y1) == WK && x1-2 == x2 && y1-1 == y2
-        && (getFromBoard (theBoard board) (x2, y2) /= WK
-        && getFromBoard (theBoard board) (x2, y2) /= WP) = True
+    |getFromBoard board (x1,y1) == WP && x1==x2 && y1+1==y2 
+        && getFromBoard board (x2,y2)== E = True
+    |(getFromBoard board (x1,y1) == WP && x1+1==x2 && y1+1==y2 
+        && (getFromBoard board (x2,y2)== BK
+        || getFromBoard board (x2,y2)== BP)) = True
+    |(getFromBoard board (x1,y1) == WP && x1-1==x2 && y1+1==y2
+        && (getFromBoard board (x2,y2)== BK
+        || getFromBoard board (x2,y2)== BP)) = True
+    |getFromBoard board (x1,y1) == WK && x1+1 == x2 && y1+2 == y2
+        && (getFromBoard board (x2, y2) /= WK
+        && getFromBoard board (x2, y2) /= WP) = True
+    |getFromBoard board (x1,y1) == WK && x1-1 == x2 && y1+2 == y2
+        && (getFromBoard board (x2, y2) /= WK
+        && getFromBoard board (x2, y2) /= WP) = True
+    |getFromBoard board (x1,y1) == WK && x1+1 == x2 && y1-2 == y2
+        && (getFromBoard board (x2, y2) /= WK
+        && getFromBoard board (x2, y2) /= WP) = True
+    |getFromBoard board (x1,y1) == WK && x1-1 == x2 && y1-2 == y2
+        && (getFromBoard board (x2, y2) /= WK
+        && getFromBoard board (x2, y2) /= WP) = True
+    |getFromBoard board (x1,y1) == WK && x1+2 == x2 && y1+1 == y2
+        && (getFromBoard board (x2, y2) /= WK
+        && getFromBoard board (x2, y2) /= WP) = True
+    |getFromBoard board (x1,y1) == WK && x1-2 == x2 && y1+1 == y2
+        && (getFromBoard board (x2, y2) /= WK
+        && getFromBoard board (x2, y2) /= WP) = True
+    |getFromBoard board (x1,y1) == WK && x1+2 == x2 && y1-1 == y2
+        && (getFromBoard board (x2, y2) /= WK
+        && getFromBoard board (x2, y2) /= WP) = True
+    |getFromBoard board (x1,y1) == WK && x1-2 == x2 && y1-1 == y2
+        && (getFromBoard board (x2, y2) /= WK
+        && getFromBoard board (x2, y2) /= WP) = True
     | otherwise = False
+    
