@@ -13,7 +13,6 @@ express or implied warranty.
 module Main(main) where
 
 import System.Random
-import Control.Monad
 import Control.Monad.Trans.State.Lazy
 import Data.Maybe (fromJust, isNothing)
 import Data.List
@@ -72,22 +71,18 @@ check n
   | n == "human" = return human 
   | n == "greedy" = return human
   |otherwise = do putStrLn "Invalid input"; ply <- getLine; check ply
-  
+
 gameLoop :: GameState -> Chooser -> Chooser -> IO ()
 gameLoop board bStrat wStrat = do
     bMove <- bStrat board Normal Black
     wMove <- wStrat board Normal White
     let nextState = GameState (if bMove == Nothing 
                                 then Passed 
-                                else if(validateMove board (fromJust bMove) Black)
-                                then Played (head (fromJust bMove), head (tail (fromJust bMove)))
-                                else Goofed (head (fromJust bMove), head (tail (fromJust bMove))))
+                                else Played (head (fromJust bMove), head (tail (fromJust bMove))))
                                 (blackPen initBoard)
                                 (if wMove == Nothing 
-                                then Passed 
-                                else if(validateMove board (fromJust wMove) White)
-                                then Played (head (fromJust wMove), head (tail (fromJust wMove)))
-                                else Goofed (head (fromJust wMove), head (tail (fromJust wMove))))
+                                then Passed
+                                else Played (head (fromJust wMove), head (tail (fromJust wMove))))
                                 (whitePen initBoard)
                                 (if bMove == Nothing
                                   then (if wMove == Nothing 
@@ -95,11 +90,12 @@ gameLoop board bStrat wStrat = do
                                         else (replace2 (replace2 (theBoard board)((fromJust wMove) !! 1)(getFromBoard (theBoard board) ((fromJust wMove) !! 0)))((fromJust wMove) !! 0)E))
                                   else (if wMove == Nothing then (replace2 (replace2 (theBoard board)((fromJust bMove) !! 1)(getFromBoard (theBoard board) ((fromJust bMove) !! 0)))((fromJust bMove) !! 0)E)
                                         else (replace2 (replace2 (replace2 (replace2 (theBoard board) ((fromJust wMove) !! 0) E) ((fromJust bMove) !! 0) E) ((fromJust wMove) !! 1) (getFromBoard (theBoard board) ((fromJust wMove) !! 0))) ((fromJust bMove) !! 1) (getFromBoard (theBoard board) ((fromJust bMove) !! 0)))))            
-    if (isGameOver nextState bMove wMove) == True then gameOver nextState
-      else do
     putStrLn (show nextState)
-    gameLoop nextState bStrat wStrat
-    
+    if (isGameOver nextState bMove wMove) == True then gameOver nextState
+      else
+        if checkEnd nextState
+          then placer nextState bStrat wStrat
+          else gameLoop nextState bStrat wStrat
 isGameOver :: GameState -> Maybe[(Int,Int)] -> Maybe[(Int,Int)] -> Bool
 isGameOver board bMove wMove
                       | bMove == Nothing && wMove == Nothing = True
@@ -107,9 +103,91 @@ isGameOver board bMove wMove
                       | elem '+' (board2Str (theBoard board)) == False = True
                       | (blackPen board) >= 2 || (whitePen board) >= 2 = True
                       | otherwise = False
-                      
-gameOver :: GameState -> IO()
-gameOver board = putStrLn ("Winner is:" ++ [intToDigit(length (findIndices (== '/') (board2Str (theBoard board))))])
+gameOver :: GameState -> IO() --needs chooser2string method for putstrln
+gameOver board 
+              | [intToDigit(length (findIndices (== '/') (board2Str (theBoard board))))] > [intToDigit(length (findIndices (== '+') (board2Str (theBoard board))))] = putStrLn ("Winner is: WHITE" ++ [intToDigit(length (findIndices (== '/') (board2Str (theBoard board))))])
+              | [intToDigit(length (findIndices (== '/') (board2Str (theBoard board))))] < [intToDigit(length (findIndices (== '+') (board2Str (theBoard board))))] = putStrLn ("Winner is: BLACK" ++ [intToDigit(length (findIndices (== '/') (board2Str (theBoard board))))])
+              | [intToDigit(length (findIndices (== '/') (board2Str (theBoard board))))] == [intToDigit(length (findIndices (== '+') (board2Str (theBoard board))))] = putStrLn ("DRAW! " ++ [intToDigit(length (findIndices (== '/') (board2Str (theBoard board))))])
+
+checkEnd :: GameState -> Bool
+checkEnd board = if elem BP (head(theBoard board)) || elem WP (last(theBoard board)) 
+        then True
+        else False
+promotion :: Board -> Player -> Maybe[(Int,Int)] -> Board
+promotion board Black move = if move == Nothing && (length(findIndices (== '#') (board2Str (theBoard board))) >= 2) then replace2 board ((findPawn (head board) BP),0) BK
+                              else replace2 (replace2 board ((fromJust move) !! 0) BP) ((findPawn (head board) BP),0) E
+
+promotion board White move = if move == Nothing && (length(findIndices (== 'X') (board2Str (theBoard board))) >= 2) then replace2 board ((findPawn (last board) WP),4) WK
+                              else replace2 (replace2 board ((fromJust move) !! 0) WP) ((findPawn (last board) WP),4) E
+
+placer :: GameState -> Chooser -> Chooser -> IO()
+placer board bStrat wStrat = do
+    let b = elem BP (head(theBoard board))
+    let w = elem WP (last(theBoard board))
+    bMove <- if b && length(findIndices (== '#') (board2Str (theBoard board))) >= 2
+      then bStrat board PawnPlacement Black 
+      else return Nothing
+    wMove <- if w && length(findIndices (== 'X') (board2Str (theBoard board))) >= 2
+      then wStrat board PawnPlacement White 
+      else return Nothing
+    let nextState = GameState (if b == False
+                                 then None
+                                 else if bMove == Nothing
+                                    then if length(findIndices (== '#') (board2Str (theBoard board))) < 2
+                                        then UpgradedPawn2Knight ((findPawn (head(theBoard board)) BP),0)
+                                        else NullPlacedPawn 
+                                    else if isValid bMove board
+                                        then PlacedPawn (((findPawn (head(theBoard board)) BP),0), ((fromJust bMove) !! 0))
+                                        else BadPlacedPawn (((findPawn (head(theBoard board)) BP),0), ((fromJust bMove) !! 0)))
+                              (blackPen board + if (b && (bMove == Nothing && length(findIndices (== '#') (board2Str (theBoard board))) >= 2) || isValid bMove board == False) then 1 else 0)
+                              (if w == False
+                                 then None
+                                 else if wMove == Nothing
+                                    then if length(findIndices (== 'X') (board2Str (theBoard board))) < 2
+                                        then UpgradedPawn2Knight ((findPawn (last(theBoard board)) WP),4)
+                                        else NullPlacedPawn 
+                                    else if isValid wMove board
+                                        then PlacedPawn (((findPawn (last(theBoard board)) WP),4), ((fromJust wMove) !! 0))
+                                        else BadPlacedPawn (((findPawn (last(theBoard board)) WP),4), ((fromJust wMove) !! 0)))
+                              (whitePen board + if (w && (wMove == Nothing && length(findIndices (== 'X') (board2Str (theBoard board))) >= 2) || isValid wMove board == False) then 1 else 0)
+                              (if b && isValid bMove board
+                                  then if w && isValid wMove board
+                                    then if (length(findIndices (== '#') (board2Str (theBoard board))) >= 2 && 
+                                            length(findIndices (== 'X') (board2Str (theBoard board))) >= 2 && 
+                                            isMoveEqual bMove wMove)
+                                        then (replace2 (replace2 (theBoard board) ((findPawn (head(theBoard board)) BP),0) E) ((findPawn (last(theBoard board)) WP),4) E)
+                                        else do promotion (promotion (theBoard board) White wMove) Black bMove
+                                    else if length(findIndices (== '#') (board2Str (theBoard board))) >= 2 
+                                      then theBoard board
+                                      else promotion (theBoard board) Black bMove
+                                  else if w && isValid wMove board
+                                    then  promotion (theBoard board) White wMove 
+                                    else (theBoard board))
+    putStrLn (show nextState)
+    gameLoop nextState bStrat wStrat 
+
+findPawn :: [Cell] -> Cell -> Int
+findPawn (x:xs) c = if x == c 
+                      then 0
+                      else 1 + findPawn xs c 
+isValid :: Maybe[(Int,Int)] -> GameState -> Bool
+isValid move board 
+              | move == Nothing = True
+              | (getFromBoard (theBoard board) ((fromJust move) !! 0)) == E = True
+              | otherwise = False
+isMoveEqual :: Maybe[(Int,Int)] -> Maybe[(Int,Int)] -> Bool
+isMoveEqual move1 move2 
+              | move1 == Nothing && move2 == Nothing = True
+              | (head(fromJust move1)) == (head(fromJust move2)) = True
+              | otherwise = False
+-- | Checks the (x,y)th element in a 2d list and returns the element without changes.
+checkLocation2d :: [[a]] -> (Int,Int) -> a
+checkLocation2d (x:xs) (0,b) = checkLocation x b
+checkLocation2d (x:xs) (a,b) = checkLocation2d xs (a-1,b)
+
+checkLocation :: [a] -> Int -> a
+checkLocation (x:xs) 0 = x 
+checkLocation (x:xs) n = checkLocation xs (n-1)
 
 --Logic that handles if a clash has happened on the board, takes in the game state
 --WhitePlayed first, and then BlackPlayed second, returns what the cell should be
