@@ -80,13 +80,13 @@ gameLoop board bStrat wStrat = do
                             else if(validateMove (theBoard board) (fromJust bMove) Black)
                             then Played (head (fromJust bMove), head (tail (fromJust bMove)))
                             else Goofed (head (fromJust bMove), head (tail (fromJust bMove))))
-                            (blackPen initBoard)
+                            (blackPen board + if(validateMove (theBoard board) (fromJust bMove) Black) then 0 else 1)
                             (if wMove == Nothing 
                             then Passed 
                             else if(validateMove (theBoard board) (fromJust wMove) White)
                             then Played (head (fromJust wMove), head (tail (fromJust wMove)))
                             else Goofed (head (fromJust wMove), head (tail (fromJust wMove))))
-                            (whitePen initBoard)
+                            (whitePen board + if(validateMove (theBoard board) (fromJust wMove) White) then 0 else 1)
                             (changeBoard (theBoard board) bMove wMove)
     putStrLn (show nextState)
     if (isGameOver nextState bMove wMove) == True then gameOver nextState
