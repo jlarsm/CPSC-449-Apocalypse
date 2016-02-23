@@ -1,0 +1,83 @@
+>>>
+(Init, 0)
+(Init, 0)
+ _ _ _ _ _
+|X|/|/|/|X|
+|/|_|_|_|/|
+|_|_|_|_|_|
+|+|_|_|_|+|
+|#|+|+|+|#|
+
+Enter the move coordinates for player Black in the form 'srcX srcY destX destY'
+[0 >= n >= 4, or just enter return for a 'pass'] B2:
+
+1 4 1 3 -- round 1
+Enter the move coordinates for player White in the form 'srcX srcY destX destY'
+[0 >= n >= 4, or just enter return for a 'pass'] W2:
+
+2 0 2 1
+>>>
+(Played ((1,4),(1,3)), 0)
+(Played ((2,0),(2,1)), 0)
+ _ _ _ _ _
+|X|/|_|/|X|
+|/|_|/|_|/|
+|_|_|_|_|_|
+|+|+|_|_|+|
+|#|_|+|+|#|
+
+Enter the move coordinates for player Black in the form 'srcX srcY destX destY'
+[0 >= n >= 4, or just enter return for a 'pass'] B2:
+
+1 3 1 2 -- round 2
+Enter the move coordinates for player White in the form 'srcX srcY destX destY'
+[0 >= n >= 4, or just enter return for a 'pass'] W2:
+
+
+>>>
+(Played ((1,3),(1,2)), 0)
+(Passed, 0)
+ _ _ _ _ _
+|X|/|_|/|X|
+|/|_|/|_|/|
+|_|+|_|_|_|
+|+|_|_|_|+|
+|#|_|+|+|#|
+
+Enter the move coordinates for player Black in the form 'srcX srcY destX destY'
+[0 >= n >= 4, or just enter return for a 'pass'] B2:
+
+1 2 2 1 -- round 3
+Enter the move coordinates for player White in the form 'srcX srcY destX destY'
+[0 >= n >= 4, or just enter return for a 'pass'] W2:
+
+1 1 1 1
+>>>
+(Played ((1,2),(2,1)), 0)
+(Goofed ((1,1),(1,1)), 1)
+ _ _ _ _ _
+|X|/|_|/|X|
+|/|_|+|_|/|
+|_|_|_|_|_|
+|+|_|_|_|+|
+|#|_|+|+|#|
+
+Enter the move coordinates for player Black in the form 'srcX srcY destX destY'
+[0 >= n >= 4, or just enter return for a 'pass'] B2:
+
+2 1 2 0 -- round 4
+Enter the move coordinates for player White in the form 'srcX srcY destX destY'
+[0 >= n >= 4, or just enter return for a 'pass'] W2:
+
+1 1 1 1
+>>>
+(Played ((2,1),(2,0)), 0)
+(Goofed ((1,1),(1,1)), 2)
+ _ _ _ _ _
+|X|/|+|/|X|
+|/|_|_|_|/|
+|_|_|_|_|_|
+|+|_|_|_|+|
+|#|_|+|+|#|
+
+Black wins! (Because White accumulated >1 penalty points.)  Black (human): 5  White (human): 4

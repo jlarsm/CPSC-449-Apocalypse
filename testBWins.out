@@ -1,0 +1,297 @@
+>>>
+(Init, 0)
+(Init, 0)
+ _ _ _ _ _
+|X|/|/|/|X|
+|/|_|_|_|/|
+|_|_|_|_|_|
+|+|_|_|_|+|
+|#|+|+|+|#|
+
+Enter the move coordinates for player Black in the form 'srcX srcY destX destY'
+[0 >= n >= 4, or just enter return for a 'pass'] B2:
+
+0 4 2 3 -- Black
+Enter the move coordinates for player White in the form 'srcX srcY destX destY'
+[0 >= n >= 4, or just enter return for a 'pass'] W2:
+
+0 0 1 2
+>>>
+(Played ((0,4),(2,3)), 0)
+(Played ((0,0),(1,2)), 0)
+ _ _ _ _ _
+|_|/|/|/|X|
+|/|_|_|_|/|
+|_|X|_|_|_|
+|+|_|#|_|+|
+|_|+|+|+|#|
+
+Enter the move coordinates for player Black in the form 'srcX srcY destX destY'
+[0 >= n >= 4, or just enter return for a 'pass'] B2:
+
+0 3 1 2 -- Black
+Enter the move coordinates for player White in the form 'srcX srcY destX destY'
+[0 >= n >= 4, or just enter return for a 'pass'] W2:
+
+1 2 2 4
+>>>
+(Played ((0,3),(1,2)), 0)
+(Played ((1,2),(2,4)), 0)
+ _ _ _ _ _
+|_|/|/|/|X|
+|/|_|_|_|/|
+|_|+|_|_|_|
+|_|_|#|_|+|
+|_|+|X|+|#|
+
+Enter the move coordinates for player Black in the form 'srcX srcY destX destY'
+[0 >= n >= 4, or just enter return for a 'pass'] B2:
+
+1 2 0 1 -- Black
+Enter the move coordinates for player White in the form 'srcX srcY destX destY'
+[0 >= n >= 4, or just enter return for a 'pass'] W2:
+
+0 1 1 2
+>>>
+(Played ((1,2),(0,1)), 0)
+(Played ((0,1),(1,2)), 0)
+ _ _ _ _ _
+|_|/|/|/|X|
+|+|_|_|_|/|
+|_|/|_|_|_|
+|_|_|#|_|+|
+|_|+|X|+|#|
+
+Enter the move coordinates for player Black in the form 'srcX srcY destX destY'
+[0 >= n >= 4, or just enter return for a 'pass'] B2:
+
+0 1 1 0 -- Black
+Enter the move coordinates for player White in the form 'srcX srcY destX destY'
+[0 >= n >= 4, or just enter return for a 'pass'] W2:
+
+2 4 4 3
+>>>
+(Played ((0,1),(1,0)), 0)
+(Played ((2,4),(4,3)), 0)
+ _ _ _ _ _
+|_|+|/|/|X|
+|_|_|_|_|/|
+|_|/|_|_|_|
+|_|_|#|_|X|
+|_|+|_|+|#|
+
+Enter the coordinates to place the pawn for player Black in the form 'destX destY':
+[0 >= n >= 4] B1:
+
+0 1     -- Black PlacedPawn
+>>>
+(PlacedPawn ((1,0),(0,1)), 0)
+(None, 0)
+ _ _ _ _ _
+|_|_|/|/|X|
+|+|_|_|_|/|
+|_|/|_|_|_|
+|_|_|#|_|X|
+|_|+|_|+|#|
+
+Enter the move coordinates for player Black in the form 'srcX srcY destX destY'
+[0 >= n >= 4, or just enter return for a 'pass'] B2:
+
+3 4 4 3 -- Black
+Enter the move coordinates for player White in the form 'srcX srcY destX destY'
+[0 >= n >= 4, or just enter return for a 'pass'] W2:
+
+2 0 2 1
+>>>
+(Played ((3,4),(4,3)), 0)
+(Played ((2,0),(2,1)), 0)
+ _ _ _ _ _
+|_|_|_|/|X|
+|+|_|/|_|/|
+|_|/|_|_|_|
+|_|_|#|_|+|
+|_|+|_|_|#|
+
+Enter the move coordinates for player Black in the form 'srcX srcY destX destY'
+[0 >= n >= 4, or just enter return for a 'pass'] B2:
+
+2 3 3 1 -- Black
+Enter the move coordinates for player White in the form 'srcX srcY destX destY'
+[0 >= n >= 4, or just enter return for a 'pass'] W2:
+
+4 0 3 2
+>>>
+(Played ((2,3),(3,1)), 0)
+(Played ((4,0),(3,2)), 0)
+ _ _ _ _ _
+|_|_|_|/|_|
+|+|_|/|#|/|
+|_|/|_|X|_|
+|_|_|_|_|+|
+|_|+|_|_|#|
+
+Enter the move coordinates for player Black in the form 'srcX srcY destX destY'
+[0 >= n >= 4, or just enter return for a 'pass'] B2:
+
+4 4 3 2 -- Black
+Enter the move coordinates for player White in the form 'srcX srcY destX destY'
+[0 >= n >= 4, or just enter return for a 'pass'] W2:
+
+2 1 2 2
+>>>
+(Played ((4,4),(3,2)), 0)
+(Played ((2,1),(2,2)), 0)
+ _ _ _ _ _
+|_|_|_|/|_|
+|+|_|_|#|/|
+|_|/|/|#|_|
+|_|_|_|_|+|
+|_|+|_|_|_|
+
+Enter the move coordinates for player Black in the form 'srcX srcY destX destY'
+[0 >= n >= 4, or just enter return for a 'pass'] B2:
+
+0 1 0 0 -- Black
+Enter the move coordinates for player White in the form 'srcX srcY destX destY'
+[0 >= n >= 4, or just enter return for a 'pass'] W2:
+
+4 1 3 2 -- After this, we expect a Black UpgradedPawn2Knight (0,0)
+>>>
+(Played ((0,1),(0,0)), 0)
+(Played ((4,1),(3,2)), 0)
+ _ _ _ _ _
+|+|_|_|/|_|
+|_|_|_|#|_|
+|_|/|/|/|_|
+|_|_|_|_|+|
+|_|+|_|_|_|
+
+>>>
+(UpgradedPawn2Knight (0,0), 0)
+(None, 0)
+ _ _ _ _ _
+|#|_|_|/|_|
+|_|_|_|#|_|
+|_|/|/|/|_|
+|_|_|_|_|+|
+|_|+|_|_|_|
+
+Enter the move coordinates for player Black in the form 'srcX srcY destX destY'
+[0 >= n >= 4, or just enter return for a 'pass'] B2:
+
+3 1 1 2 -- Black
+Enter the move coordinates for player White in the form 'srcX srcY destX destY'
+[0 >= n >= 4, or just enter return for a 'pass'] W2:
+
+1 2 1 3
+>>>
+(Played ((3,1),(1,2)), 0)
+(Played ((1,2),(1,3)), 0)
+ _ _ _ _ _
+|#|_|_|/|_|
+|_|_|_|_|_|
+|_|#|/|/|_|
+|_|/|_|_|+|
+|_|+|_|_|_|
+
+Enter the move coordinates for player Black in the form 'srcX srcY destX destY'
+[0 >= n >= 4, or just enter return for a 'pass'] B2:
+
+4 3 3 2 -- Black
+Enter the move coordinates for player White in the form 'srcX srcY destX destY'
+[0 >= n >= 4, or just enter return for a 'pass'] W2:
+
+2 2 2 3
+>>>
+(Played ((4,3),(3,2)), 0)
+(Played ((2,2),(2,3)), 0)
+ _ _ _ _ _
+|#|_|_|/|_|
+|_|_|_|_|_|
+|_|#|_|+|_|
+|_|/|/|_|_|
+|_|+|_|_|_|
+
+Enter the move coordinates for player Black in the form 'srcX srcY destX destY'
+[0 >= n >= 4, or just enter return for a 'pass'] B2:
+
+1 4 2 3 -- Black
+Enter the move coordinates for player White in the form 'srcX srcY destX destY'
+[0 >= n >= 4, or just enter return for a 'pass'] W2:
+
+2 3 1 4 -- After this, we expect a White UpgradedPawn2Knight (1,4)
+>>>
+(Played ((1,4),(2,3)), 0)
+(Played ((2,3),(1,4)), 0)
+ _ _ _ _ _
+|#|_|_|/|_|
+|_|_|_|_|_|
+|_|#|_|+|_|
+|_|/|+|_|_|
+|_|/|_|_|_|
+
+>>>
+(None, 0)
+(UpgradedPawn2Knight (1,4), 0)
+ _ _ _ _ _
+|#|_|_|/|_|
+|_|_|_|_|_|
+|_|#|_|+|_|
+|_|/|+|_|_|
+|_|X|_|_|_|
+
+Enter the move coordinates for player Black in the form 'srcX srcY destX destY'
+[0 >= n >= 4, or just enter return for a 'pass'] B2:
+
+0 0 2 1 -- Black
+Enter the move coordinates for player White in the form 'srcX srcY destX destY'
+[0 >= n >= 4, or just enter return for a 'pass'] W2:
+
+3 0 3 1
+>>>
+(Played ((0,0),(2,1)), 0)
+(Played ((3,0),(3,1)), 0)
+ _ _ _ _ _
+|_|_|_|_|_|
+|_|_|#|/|_|
+|_|#|_|+|_|
+|_|/|+|_|_|
+|_|X|_|_|_|
+
+Enter the move coordinates for player Black in the form 'srcX srcY destX destY'
+[0 >= n >= 4, or just enter return for a 'pass'] B2:
+
+2 1 1 3 -- Black
+Enter the move coordinates for player White in the form 'srcX srcY destX destY'
+[0 >= n >= 4, or just enter return for a 'pass'] W2:
+
+1 4 3 3
+>>>
+(Played ((2,1),(1,3)), 0)
+(Played ((1,4),(3,3)), 0)
+ _ _ _ _ _
+|_|_|_|_|_|
+|_|_|_|/|_|
+|_|#|_|+|_|
+|_|#|+|X|_|
+|_|_|_|_|_|
+
+Enter the move coordinates for player Black in the form 'srcX srcY destX destY'
+[0 >= n >= 4, or just enter return for a 'pass'] B2:
+
+1 2 3 1 -- Black
+Enter the move coordinates for player White in the form 'srcX srcY destX destY'
+[0 >= n >= 4, or just enter return for a 'pass'] W2:
+
+3 3 2 1 -- After this, the program terminates with Black winning with 2 pawns (White 0)
+>>>
+(Played ((1,2),(3,1)), 0)
+(Played ((3,3),(2,1)), 0)
+ _ _ _ _ _
+|_|_|_|_|_|
+|_|_|X|#|_|
+|_|_|_|+|_|
+|_|#|+|_|_|
+|_|_|_|_|_|
+
+Black wins!  Black (human): 2  White (human): 0

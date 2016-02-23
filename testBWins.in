@@ -1,0 +1,29 @@
+0 4 2 3 -- Black
+0 0 1 2
+0 3 1 2 -- Black
+1 2 2 4
+1 2 0 1 -- Black
+0 1 1 2
+0 1 1 0 -- Black
+2 4 4 3
+0 1     -- Black PlacedPawn
+3 4 4 3 -- Black
+2 0 2 1
+2 3 3 1 -- Black
+4 0 3 2
+4 4 3 2 -- Black
+2 1 2 2
+0 1 0 0 -- Black
+4 1 3 2 -- After this, we expect a Black UpgradedPawn2Knight (0,0)
+3 1 1 2 -- Black
+1 2 1 3
+4 3 3 2 -- Black
+2 2 2 3
+1 4 2 3 -- Black
+2 3 1 4 -- After this, we expect a White UpgradedPawn2Knight (1,4)
+0 0 2 1 -- Black
+3 0 3 1
+2 1 1 3 -- Black
+1 4 3 3
+1 2 3 1 -- Black
+3 3 2 1 -- After this, the program terminates with Black winning with 2 pawns (White 0)
