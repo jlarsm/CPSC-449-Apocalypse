@@ -36,7 +36,7 @@ main'           :: [String] -> IO()
 main' args = do
         args <- getArgs
         if args == [] then do
-          putStrLn "Possible strategies:\n human\n greedy"
+          putStrLn "Possible strategies:\n  human\n  greedy"
           putStrLn "Choose strategy for BLACK:"
           play <- getLine
           bStrat <- (check play)
@@ -138,9 +138,9 @@ isGameOver board bMove wMove
                       | otherwise = False
 gameOver :: GameState -> IO() --needs chooser2string method for putstrln
 gameOver board 
-              | [intToDigit(length (findIndices (== '/') (board2Str (theBoard board))))] > [intToDigit(length (findIndices (== '+') (board2Str (theBoard board))))] = putStrLn ("Winner is: WHITE" ++ [intToDigit(length (findIndices (== '/') (board2Str (theBoard board))))])
-              | [intToDigit(length (findIndices (== '/') (board2Str (theBoard board))))] < [intToDigit(length (findIndices (== '+') (board2Str (theBoard board))))] = putStrLn ("Winner is: BLACK" ++ [intToDigit(length (findIndices (== '/') (board2Str (theBoard board))))])
-              | [intToDigit(length (findIndices (== '/') (board2Str (theBoard board))))] == [intToDigit(length (findIndices (== '+') (board2Str (theBoard board))))] = putStrLn ("DRAW! " ++ [intToDigit(length (findIndices (== '/') (board2Str (theBoard board))))])
+              | [intToDigit(length (findIndices (== '/') (board2Str (theBoard board))))] > [intToDigit(length (findIndices (== '+') (board2Str (theBoard board))))] = putStrLn ("Winner is: WHITE" ++ " White:" ++ [intToDigit(length (findIndices (== '/') (board2Str (theBoard board))))] ++ " Black:" ++ [intToDigit(length (findIndices (== '+') (board2Str (theBoard board))))])
+              | [intToDigit(length (findIndices (== '/') (board2Str (theBoard board))))] < [intToDigit(length (findIndices (== '+') (board2Str (theBoard board))))] = putStrLn ("Winner is: BLACK" ++ " White:" ++ [intToDigit(length (findIndices (== '/') (board2Str (theBoard board))))] ++ " Black:" ++ [intToDigit(length (findIndices (== '+') (board2Str (theBoard board))))])
+              | [intToDigit(length (findIndices (== '/') (board2Str (theBoard board))))] == [intToDigit(length (findIndices (== '+') (board2Str (theBoard board))))] = putStrLn ("DRAW! " ++ " White:" ++ [intToDigit(length (findIndices (== '/') (board2Str (theBoard board))))] ++ " Black:" ++ [intToDigit(length (findIndices (== '+') (board2Str (theBoard board))))])
 
 checkEnd :: GameState -> Bool
 checkEnd board = if elem BP (head(theBoard board)) || elem WP (last(theBoard board)) 
@@ -148,10 +148,13 @@ checkEnd board = if elem BP (head(theBoard board)) || elem WP (last(theBoard boa
         else False
         
 promotion :: Board -> Player -> Maybe[(Int,Int)] -> Board
-promotion board Black move = if move == Nothing && (length(findIndices (== '#') (board2Str board))) >= 2 then replace2 board ((findPawn (head board) BP),0) BK
-                              else replace2 (replace2 board ((fromJust move) !! 0) BP) ((findPawn (head board) BP),0) E
-promotion board White move = if move == Nothing && (length(findIndices (== 'X') (board2Str board))) >= 2 then replace2 board ((findPawn (last board) WP),4) WK
-                              else replace2 (replace2 board ((fromJust move) !! 0) WP) ((findPawn (last board) WP),4) E
+promotion board Black move = if move == Nothing && (length(findIndices (== '#') (board2Str board))) < 2 then replace2 board ((findPawn (head board) BP),0) BK
+                              else if move /= Nothing then replace2 (replace2 board ((fromJust move) !! 0) BP) ((findPawn (head board) BP),0) E
+                                else board
+
+promotion board White move = if move == Nothing && (length(findIndices (== 'X') (board2Str board))) < 2 then replace2 board ((findPawn (last board) WP),4) WK
+                              else if move /= Nothing then replace2 (replace2 board ((fromJust move) !! 0) WP) ((findPawn (last board) WP),4) E
+                                else board
 
 placer :: GameState -> Chooser -> Chooser -> IO()
 placer board bStrat wStrat = do
@@ -190,9 +193,7 @@ placer board bStrat wStrat = do
                                             isMoveEqual bMove wMove)
                                         then (replace2 (replace2 (theBoard board) ((findPawn (head(theBoard board)) BP),0) E) ((findPawn (last(theBoard board)) WP),4) E)
                                         else do promotion (promotion (theBoard board) White wMove) Black bMove
-                                    else if length(findIndices (== '#') (board2Str (theBoard board))) >= 2 
-                                      then theBoard board
-                                      else promotion (theBoard board) Black bMove
+                                    else promotion (theBoard board) Black bMove 
                                   else if w && isValid wMove board
                                     then  promotion (theBoard board) White wMove 
                                     else (theBoard board))
@@ -212,7 +213,7 @@ isValid move board
               
 isMoveEqual :: Maybe[(Int,Int)] -> Maybe[(Int,Int)] -> Bool
 isMoveEqual move1 move2 
-              | move1 == Nothing && move2 == Nothing = True
+              | move1 == Nothing && move2 == Nothing = False
               | (head(fromJust move1)) == (head(fromJust move2)) = True
               | otherwise = False
               
@@ -296,4 +297,3 @@ validateMove board [(x1,y1),(x2,y2)] White --for white pieces
         && (getFromBoard board (x2, y2) /= WK
         && getFromBoard board (x2, y2) /= WP) = True
     | otherwise = False
-    
